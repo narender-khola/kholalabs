@@ -31,14 +31,47 @@ export function can(feature, ctx = {}) {
 }
 const no = (reason) => ({ ok: false, reason });
 
-/** Stub activation. Real impl: POST key to provider's license/validate endpoint (no own server needed). */
+// Dodo Payments license keys: public endpoints, CORS-enabled, no API key needed.
+const DODO = IS_DEV ? 'https://test.dodopayments.com' : 'https://live.dodopayments.com';
+const post = (path, body) => fetch(DODO + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+/** Activates a license key on this device. Returns {ok:true} or {ok:false, reason}. */
 export async function activate(licenseKey) {
-  const k = (licenseKey || '').trim().toUpperCase();
-  if (IS_DEV && k === DEMO_KEY) {
+  const k = (licenseKey || '').trim();
+  if (!k) return { ok: false, reason: 'Please enter your license key.' };
+  if (IS_DEV && k.toUpperCase() === DEMO_KEY) {
     localStorage.setItem(KEY, JSON.stringify({ active: true, key: k, at: Date.now(), source: 'demo' }));
     return { ok: true };
   }
-  return { ok: false, reason: 'That key wasn’t recognised. (Payments are not live yet.)' };
+  try {
+    const r = await post('/licenses/activate', { license_key: k, name: `Bhasha Cards · ${navigator.platform || 'device'}` });
+    if (r.ok) {
+      const j = await r.json();
+      localStorage.setItem(KEY, JSON.stringify({ active: true, key: k, instance: j.id, at: Date.now(), source: 'dodo' }));
+      return { ok: true };
+    }
+    const msg = { 403: 'This key is not active. If you were refunded, Pro is switched off.', 404: 'That key wasn’t recognised. Please check it and try again.', 422: 'This key is already in use on 5 devices. Deactivate one first, or email kholalabs.studio@gmail.com.' }[r.status];
+    return { ok: false, reason: msg || 'Could not activate right now. Please try again.' };
+  } catch { return { ok: false, reason: 'You seem to be offline. Connect to the internet to activate.' }; }
 }
 
-export function deactivate() { localStorage.removeItem(KEY); }
+/** Re-checks a stored key at most once a week. Stays Pro when offline; only a definite "invalid" turns it off. */
+export async function revalidate() {
+  let lic; try { lic = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { return; }
+  if (!lic?.active || lic.source !== 'dodo' || Date.now() - (lic.checked || lic.at) < 7 * 864e5) return;
+  try {
+    const r = await post('/licenses/validate', { license_key: lic.key, license_key_instance_id: lic.instance });
+    if (!r.ok) return;
+    const { valid } = await r.json();
+    if (valid) localStorage.setItem(KEY, JSON.stringify({ ...lic, checked: Date.now() }));
+    else localStorage.removeItem(KEY);
+  } catch { /* offline: keep Pro */ }
+}
+
+export async function deactivate() {
+  let lic; try { lic = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch {}
+  localStorage.removeItem(KEY);
+  if (lic?.source === 'dodo' && lic.instance) {
+    try { await post('/licenses/deactivate', { license_key: lic.key, license_key_instance_id: lic.instance }); } catch {}
+  }
+}

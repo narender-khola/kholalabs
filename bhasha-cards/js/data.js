@@ -1,3 +1,15 @@
+import en from './words/en.js';
+import hi from './words/hi.js';
+import mr from './words/mr.js';
+import gu from './words/gu.js';
+import pa from './words/pa.js';
+import ta from './words/ta.js';
+import te from './words/te.js';
+import bn from './words/bn.js';
+import GEN_ART from './words/art.js';
+// Extra decks per language (words/<lang>.js): appended to W below; English has its full decks there.
+const EXTRA = { en, hi, mr, gu, pa, ta, te, bn };
+
 // Language + starter-deck content. Each row: [native word, transliteration, English meaning, emoji]
 // NOTE: kinship terms vary by region/family — users can edit any card. Have a native speaker review before launch.
 
@@ -9,12 +21,25 @@ export const LANGS = {
   ta: { name: 'Tamil',   native: 'தமிழ்',   font: "'Baloo Thambi 2'", tts: 'ta-IN' },
   te: { name: 'Telugu',  native: 'తెలుగు',  font: "'Baloo Tammudu 2'",tts: 'te-IN' },
   bn: { name: 'Bengali', native: 'বাংলা',   font: "'Baloo Da 2'",     tts: 'bn-IN' },
+  en: { name: 'English', native: 'English', font: "'Nunito'",         tts: 'en-IN' },
 };
 
 export const TEMPLATES = [
-  { key: 'family',  title: 'My Family', emoji: '👵', pro: false, blurb: 'Dadi, Nani, Chacha… with real photos' },
-  { key: 'animals', title: 'Animals',   emoji: '🐘',     pro: false, blurb: '10 everyday animals' },
-  { key: 'food',    title: 'Food',      emoji: '🥭',     pro: true,  blurb: 'Doodh, roti, aam…' },
+  { key: 'family',    title: 'My Family',        emoji: '👵', pro: false, blurb: 'Dadi, Nani, Chacha… with real photos' },
+  { key: 'animals',   title: 'Animals',          emoji: '🐘', pro: false, blurb: '22 animals, pets to peacocks' },
+  { key: 'colours',   title: 'Colours',          emoji: '🎨', pro: false, blurb: 'Red, blue, green…' },
+  { key: 'food',      title: 'Food',             emoji: '🥭', pro: true,  blurb: 'Doodh, roti, dal, chai…' },
+  { key: 'fruitveg',  title: 'Fruits & Veggies', emoji: '🥕', pro: true,  blurb: 'Grapes, aloo, tamatar…' },
+  { key: 'numbers',   title: 'Numbers 1–10',     emoji: '🔢', pro: true,  blurb: 'Count to ten' },
+  { key: 'body',      title: 'My Body',          emoji: '👃', pro: true,  blurb: 'Eyes, nose, hands…' },
+  { key: 'home',      title: 'At Home',          emoji: '🏠', pro: true,  blurb: 'Door, bed, spoon…' },
+  { key: 'clothes',   title: 'Clothes',          emoji: '👕', pro: true,  blurb: 'Shirt, sari, shoes…' },
+  { key: 'vehicles',  title: 'Going Places',     emoji: '🚗', pro: true,  blurb: 'Bus, train, auto…' },
+  { key: 'nature',    title: 'Nature & Weather', emoji: '🌈', pro: true,  blurb: 'Sun, rain, trees…' },
+  { key: 'actions',   title: 'Action Words',     emoji: '🏃', pro: true,  blurb: 'Eat, sleep, play…' },
+  { key: 'feelings',  title: 'Feelings',         emoji: '😊', pro: true,  blurb: 'Happy, sad, scared…' },
+  { key: 'opposites', title: 'Opposites',        emoji: '↔️', pro: true,  blurb: 'Big–small, hot–cold…' },
+  { key: 'phrases',   title: 'Everyday Phrases', emoji: '💬', pro: true,  blurb: 'Hello, thank you, I love you' },
 ];
 
 const W = {
@@ -158,6 +183,7 @@ const W = {
 // Rebuild with `node tools/art.mjs`. Anything not listed falls back to the emoji.
 const A = (n, ext = 'svg') => `img/art/${n}.${ext}`;
 export const ART = {
+  ...GEN_ART, // tools/gen_art.py: illustrations for every other deck
   '👩': A('mother'), '👨': A('father'), '👵': A('grandmother'), '👴': A('grandfather'),
   '👦': A('boy'), '👧': A('girl'), '🧔': A('uncle'), '👩‍🦱': A('aunt'), '👩‍🦰': A('aunt2'),
   '🐈': A('cat', 'webp'), '🐘': A('elephant', 'webp'), '🦁': A('lion', 'webp'), '🐟': A('fish', 'webp'),
@@ -166,5 +192,5 @@ export const ART = {
 export const artFor = (emoji) => ART[(emoji || '').trim()] || null;
 
 export function templateCards(lang, key) {
-  return (W[lang]?.[key] || []).map(([word, translit, meaning, emoji]) => ({ word, translit, meaning, emoji }));
+  return [...(W[lang]?.[key] || []), ...(EXTRA[lang]?.[key] || [])].map(([word, translit, meaning, emoji]) => ({ word, translit, meaning, emoji }));
 }

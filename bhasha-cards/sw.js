@@ -1,6 +1,7 @@
 // Offline-first shell cache. Bump VERSION on each release.
-const VERSION = 'bc-v5';
+const VERSION = 'bc-v6';
 const SHELL = ['app.html', 'css/app.css', 'js/main.js', 'js/data.js', 'js/store.js', 'js/entitlements.js',
+  'js/words/en.js', 'js/words/hi.js', 'js/words/mr.js', 'js/words/gu.js', 'js/words/pa.js', 'js/words/ta.js', 'js/words/te.js', 'js/words/bn.js', 'js/words/art.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',
   // starter-deck art (keep in sync with ART in js/data.js)
   'img/art/apple.webp', 'img/art/aunt.svg', 'img/art/aunt2.svg', 'img/art/bird.webp', 'img/art/boy.svg', 'img/art/cat.webp', 'img/art/egg.webp', 'img/art/elephant.webp', 'img/art/father.svg', 'img/art/fish.webp', 'img/art/girl.svg', 'img/art/grandfather.svg', 'img/art/grandmother.svg', 'img/art/lion.webp', 'img/art/mango.webp', 'img/art/mother.svg', 'img/art/rabbit.webp', 'img/art/uncle.svg'];

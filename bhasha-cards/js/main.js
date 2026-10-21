@@ -1,6 +1,6 @@
 import { LANGS, TEMPLATES, templateCards, artFor } from './data.js';
 import { loadDecks, saveDecks, uid, putPhoto, delPhoto, photoURL, processImage } from './store.js';
-import { can, isPro, activate, deactivate, PRICE, CHECKOUT_URL, FREE_LIMITS } from './entitlements.js';
+import { can, isPro, activate, deactivate, revalidate, PRICE, CHECKOUT_URL, FREE_LIMITS } from './entitlements.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -54,7 +54,7 @@ function openPaywall(reason = '') {
     const r = await activate($('#pwKey', d).value);
     if (r.ok) { d.close(); toast('Pro unlocked. Thank you! 🎉'); refreshPro(); route(); } else toast(r.reason);
   });
-  $('#pwOff', d)?.addEventListener('click', () => { deactivate(); d.close(); refreshPro(); route(); });
+  $('#pwOff', d)?.addEventListener('click', async () => { await deactivate(); d.close(); refreshPro(); route(); });
 }
 function refreshPro() {
   const b = $('#proBtn'); b.textContent = isPro() ? '✨ Pro' : '✨ Go Pro'; b.classList.toggle('is-pro', isPro());
@@ -317,6 +317,7 @@ async function route() {
 addEventListener('hashchange', route);
 refreshPro();
 route();
+revalidate().then(() => { refreshPro(); });
 
 // expose for tests / debugging
 window.__bc = { FREE_LIMITS, decks: () => decks };
