@@ -1,5 +1,5 @@
 // Offline-first shell cache. Bump VERSION on each release.
-const VERSION = 'bc-v7';
+const VERSION = 'bc-v8';
 const SHELL = ['app.html', 'css/app.css', 'js/main.js', 'js/data.js', 'js/store.js', 'js/entitlements.js',
   'js/words/en.js', 'js/words/hi.js', 'js/words/mr.js', 'js/words/gu.js', 'js/words/pa.js', 'js/words/ta.js', 'js/words/te.js', 'js/words/bn.js', 'js/words/art.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png',

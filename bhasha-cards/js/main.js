@@ -38,7 +38,9 @@ function openPaywall(reason = '') {
         <li>No watermark on prints</li>
         <li>A4 9-up, US Letter and 6×4 photo-paper layouts</li>
       </ul>
-      ${pro ? `<button type="button" class="btn ghost" id="pwOff">Deactivate on this device</button>` : `
+      ${pro ? `<p class="reason">Using Pro on another phone or computer? Open this link there (up to 5 devices):</p>
+      <div class="row"><input id="pwLink" readonly value="${esc(restoreLink())}"><button type="button" class="btn" id="pwCopy">Copy</button></div>
+      <button type="button" class="btn ghost" id="pwOff">Deactivate on this device</button>` : `
       <div class="price"><b>${PRICE.usd}</b> <span>or ${PRICE.inr} in India</span><small>${PRICE.note}</small></div>
       <button type="button" class="btn primary" id="pwBuy">Unlock Pro</button>
       <details class="lic"><summary>Already bought? Enter license key</summary>
@@ -55,6 +57,14 @@ function openPaywall(reason = '') {
     if (r.ok) { d.close(); toast('Pro unlocked. Thank you! 🎉'); refreshPro(); route(); } else toast(r.reason);
   });
   $('#pwOff', d)?.addEventListener('click', async () => { await deactivate(); d.close(); refreshPro(); route(); });
+  $('#pwCopy', d)?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('#pwLink', d).value); toast('Link copied. Send it to yourself on WhatsApp or email.'); }
+    catch { $('#pwLink', d).select(); toast('Select the link and copy it'); }
+  });
+}
+function restoreLink() {
+  let k = ''; try { k = JSON.parse(localStorage.getItem('bc.license') || 'null')?.key || ''; } catch {}
+  return k ? `${location.origin}${location.pathname}?license_key=${encodeURIComponent(k)}` : '';
 }
 function refreshPro() {
   const b = $('#proBtn'); b.textContent = isPro() ? '✨ Pro' : '✨ Go Pro'; b.classList.toggle('is-pro', isPro());
@@ -315,9 +325,27 @@ async function route() {
   scrollTo(0, 0);
 }
 addEventListener('hashchange', route);
+
+/* ---------- auto-activate after checkout ----------
+   Dodo sends the buyer back to app.html?payment_id=…&status=succeeded&license_key=KEY (several keys are
+   comma-separated). The same ?license_key=KEY link also works as a "restore Pro" link on another device. */
+async function activateFromURL() {
+  const q = new URLSearchParams(location.search);
+  const key = (q.get('license_key') || '').split(',')[0].trim();
+  const status = q.get('status');
+  if (!key && !status) return;
+  history.replaceState(null, '', location.pathname + location.hash);   // keep the key out of history/bookmarks
+  if (status && status !== 'succeeded' && !key) { toast('Payment not completed. You have not been charged for Pro.'); return; }
+  if (!key || isPro()) return;
+  toast('Unlocking Pro…');
+  const r = await activate(key);
+  if (r.ok) { refreshPro(); route(); toast('Pro unlocked. Thank you! 🎉'); }
+  else { openPaywall(r.reason); const i = $('#pwKey'); if (i) { i.value = key; i.closest('details').open = true; } }
+}
+
 refreshPro();
 route();
-revalidate().then(() => { refreshPro(); });
+activateFromURL().finally(() => revalidate().then(() => { refreshPro(); }));
 
 // expose for tests / debugging
 window.__bc = { FREE_LIMITS, decks: () => decks };
