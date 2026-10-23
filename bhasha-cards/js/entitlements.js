@@ -3,8 +3,8 @@
 
 export const PRICE = { usd: '$12', inr: '₹399', note: 'one-time · lifetime updates · up to 5 devices' };
 
-// TODO(payments): set to your hosted checkout URL (Dodo/Lemon Squeezy/Gumroad). Empty = "coming soon" stub.
-export const CHECKOUT_URL = '';
+// Dodo live product pdt_0NqCGP7Vz8oa2x6DsVojI ($12, ₹399 in India, license key, 5 activations). Deploy only after Dodo approves the business.
+export const CHECKOUT_URL = 'https://checkout.dodopayments.com/buy/pdt_0NqCGP7Vz8oa2x6DsVojI?quantity=1&redirect_url=https%3A%2F%2Fnarender-khola.github.io%2Fkholalabs%2Fbhasha-cards%2Fapp.html';
 
 export const FREE_LIMITS = { customDecks: 1, cardsPerDeck: 10, photos: 3 };
 
